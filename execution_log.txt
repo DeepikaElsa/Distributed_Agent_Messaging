@@ -1,0 +1,46 @@
+########## TERMINAL 2: python agent_a.py ##########
+[Agent-A] connected to Agent-B at 127.0.0.1:5050
+
+--- 1. connectivity check ---
+[Agent-A] -> PING: {}
+[Agent-A] <- PONG: {'status': 'alive'}
+
+--- 2. transfer normal state ---
+[Agent-A] -> STATE_TRANSFER: {'agent_id': 'Agent-A', 'temperature': 28.5, 'humidity': 61.0, 'sampling_interval': 5, 'alert_threshold': 40.0}
+[Agent-A] <- ACK: {'info': 'state adopted'}
+
+--- 3. transfer overheated state (Agent-B reacts proactively) ---
+[Agent-A] -> STATE_TRANSFER: {'agent_id': 'Agent-A', 'temperature': 47.2, 'humidity': 61.0, 'sampling_interval': 5, 'alert_threshold': 40.0}
+[Agent-A] <- ACK: {'info': 'state adopted'}
+[Agent-A] PROACTIVE message from Agent-B: {'action': 'COOL_DOWN', 'reason': 'temperature 47.2 above 40.0', 'new_sampling_interval': 1}
+[Agent-A] acting on COOL_DOWN, new state: {'agent_id': 'Agent-A', 'temperature': 37.2, 'humidity': 61.0, 'sampling_interval': 1, 'alert_threshold': 40.0}
+
+--- 4. remote parameter change ---
+[Agent-A] -> COMMAND: {'action': 'SET_PARAM', 'key': 'sampling_interval', 'value': 2}
+[Agent-A] <- ACK: {'info': 'sampling_interval set to 2'}
+
+--- 5. ask Agent-B for its status ---
+[Agent-A] -> COMMAND: {'action': 'REPORT_STATUS'}
+[Agent-A] <- ACK: {'params': {'sampling_interval': 2, 'alert_threshold': 40.0}, 'last_state': {'agent_id': 'Agent-A', 'temperature': 47.2, 'humidity': 61.0, 'sampling_interval': 5, 'alert_threshold': 40.0}}
+
+--- 6. unknown command (error handling) ---
+[Agent-A] -> COMMAND: {'action': 'SELF_DESTRUCT'}
+[Agent-A] <- ERROR: {'error': 'unknown action SELF_DESTRUCT'}
+
+--- 7. shutdown Agent-B ---
+[Agent-A] -> COMMAND: {'action': 'SHUTDOWN'}
+[Agent-A] <- ACK: {'info': 'shutting down'}
+[Agent-A] done
+
+########## TERMINAL 1: python agent_b.py ##########
+[Agent-B] listening on 127.0.0.1:5050
+[Agent-B] connection from ('127.0.0.1', 35642)
+[Agent-B] state received from Agent-A: {'agent_id': 'Agent-A', 'temperature': 28.5, 'humidity': 61.0, 'sampling_interval': 5, 'alert_threshold': 40.0}
+[Agent-B] state received from Agent-A: {'agent_id': 'Agent-A', 'temperature': 47.2, 'humidity': 61.0, 'sampling_interval': 5, 'alert_threshold': 40.0}
+[Agent-B] temperature 47.2 > threshold 40.0: sending proactive COOL_DOWN command
+[Agent-B] command received: {'action': 'SET_PARAM', 'key': 'sampling_interval', 'value': 2}
+[Agent-B] command received: {'action': 'REPORT_STATUS'}
+[Agent-B] command received: {'action': 'SELF_DESTRUCT'}
+[Agent-B] command received: {'action': 'SHUTDOWN'}
+[Agent-B] shutdown requested by peer
+[Agent-B] server stopped
