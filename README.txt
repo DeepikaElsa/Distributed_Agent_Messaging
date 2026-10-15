@@ -1,4 +1,3 @@
-Assignment 2.2: Distributed Agent Messaging using Sockets
 ==========================================================
 
 Files
